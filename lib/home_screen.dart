@@ -11,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _ws         = WebSocketService();
-  final _serverCtrl = TextEditingController(text: '192.168.1.100');
+  final _serverCtrl = TextEditingController(text: '20.20.1.185');
   final _groupCtrl  = TextEditingController(text: 'grupo1');
   final _nameCtrl   = TextEditingController();
   final _msgCtrl    = TextEditingController();
@@ -450,11 +450,11 @@ class _HomeScreenState extends State<HomeScreen> {
           const Text('Conecta con tu grupo al instante',
               style: TextStyle(color: _textMuted, fontSize: 14)),
         ])),
-        const SizedBox(height: 48),
-        _label('IP del servidor'),
-        _darkField(controller: _serverCtrl, hint: 'Ej: 192.168.1.100',
-            icon: Icons.wifi,
-            keyboardType: TextInputType.numberWithOptions(decimal: true)),
+        // const SizedBox(height: 48),
+        // _label('IP del servidor'),
+        // _darkField(controller: _serverCtrl, hint: 'Ej: 192.168.1.100',
+        //     icon: Icons.wifi,
+        //     keyboardType: TextInputType.numberWithOptions(decimal: true)),
         const SizedBox(height: 16),
         _label('Nombre del grupo'),
         _darkField(controller: _groupCtrl, hint: 'Ej: grupo1',
@@ -485,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 16),
         const Center(child: Text(
-          'Asegúrate de estar en la misma red WiFi',
+          'Asegúrate de estar en la misma red',
           style: TextStyle(color: _textMuted, fontSize: 12),
           textAlign: TextAlign.center,
         )),

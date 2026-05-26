@@ -5,7 +5,7 @@ from datetime import datetime
 # Manejar historial de mensajes por grupo, con idempotencia para evitar duplicados exactos consecutivos
 class MessageService:
     def __init__(self):
-        self._lock    = threading.Lock()
+        self._lock    = threading.Lock() 
         self._history = {}  # {group_id: [{sender, action, ts}]}
 
 
