@@ -468,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           const Center(
             child: Text(
-              'Asegúrate de estar en la misma red WiFi que el servidor',
+              'Asegúrate de estar en la misma red WiFi',
               style: TextStyle(color: _textMuted, fontSize: 12),
               textAlign: TextAlign.center,
             ),
