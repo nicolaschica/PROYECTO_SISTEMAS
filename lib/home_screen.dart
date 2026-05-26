@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── FIX DUPLICADOS: referencia única al listener ──────────────────
   StreamSubscription? _streamSub;
-
   bool   _connected   = false;
   bool   _connecting  = false;
   String _myName      = '';
@@ -48,8 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _showFieldAlert(
         icon: Icons.wifi_off_rounded,
         iconColor: const Color(0xFFE6A817),
-        title: 'IP del servidor vacía',
-        message: 'Ingresa la dirección IP del servidor.\nEjemplo: 192.168.1.100',
+        title: 'Campo vacío',
+        message: 'Ingresa la dirección',
         buttonText: 'Entendido',
       );
       return;
@@ -87,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         switch (msg['type']) {
-
+          
+          // Manejar errores enviados desde el WebSocket
           case 'error':
             _connecting = false;
             _connected  = false;
@@ -101,12 +101,15 @@ class _HomeScreenState extends State<HomeScreen> {
             });
             break;
 
+          // Manejar eventos del servidor
           case 'event':
             _connecting = false;
             final ev      = msg['event'] as String? ?? '';
             final members = (msg['members'] as List?)?.cast<String>() ?? [];
             _onlineCount  = members.length;
 
+
+            // Si el evento es 'join' y el remitente es el usuario actual, marcar como conectado
             if (ev == 'join' && msg['sender'] == name) {
               _connected = true;
               _myName    = name;
@@ -114,10 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 '¡Bienvenido al grupo "$group"! Hay $_onlineCount persona(s) conectada(s).',
                 isSuccess: true,
               );
+              // Si el evento es 'join' mostrar mensaje de sistema correspondiente
             } else if (ev == 'join') {
               _addSystemMsg('${msg['sender']} se unió al grupo.');
+              // Si el evento es 'leave', mostrar mensaje de sistema correspondiente
             } else if (ev == 'leave') {
               _addSystemMsg('${msg['sender']} abandonó el grupo.');
+              // Si el evento es 'disconnected', mostrar mensaje de sistema correspondiente y marcar como desconectado
             } else if (ev == 'disconnected') {
               _connected   = false;
               _onlineCount = 0;
@@ -139,7 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _scrollToBottom();
             break;
 
+
+          // Manejar historial de mensajes al conectar
           case 'history':
+            // El servidor envía un evento 'history' con los mensajes que se perdieron mientras el usuario estaba desconectado
             final history = (msg['messages'] as List? ?? [])
                 .cast<Map<String, dynamic>>();
             if (history.isNotEmpty) {
@@ -147,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Se recuperaron ${history.length} mensaje(s) enviados mientras estabas desconectado.',
                 isSuccess: true,
               );
+              // Agregar cada mensaje del historial a la lista de mensajes y marcar si es del usuario actual
               for (final h in history) {
                 _messages.add({
                   'type'  : 'message',
@@ -293,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               isNameCollision
                   ? 'Alguien en el grupo ya usa ese nombre. Prueba con uno diferente.'
-                  : 'No pudimos conectarnos. Verifica la IP y que estés en la misma red WiFi.',
+                  : 'No pudimos conectarnos. Intentalo nuevamente',
               textAlign: TextAlign.center,
               style: const TextStyle(
                   color: Color(0xFF8696A0), fontSize: 14, height: 1.6)),
@@ -332,6 +342,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollToBottom();
   }
 
+
+  // Scroll automático al agregar un nuevo mensaje, con verificación de que el widget sigue montado
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
@@ -344,6 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
+  // Mostrar un SnackBar (es decir, un mensaje emergente) con un mensaje, usando colores diferentes para errores y éxitos
   void _toast(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
@@ -353,6 +367,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+
+  // Formatear la marca de tiempo del mensaje para mostrar solo la hora y minutos
   String _formatTime(String ts) {
     if (ts.length < 16) return '';
     try {
@@ -363,6 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+  // Generar iniciales para el avatar a partir del nombre, tomando la primera letra de las dos primeras palabras o solo la primera letra si es un nombre simple
   String _initials(String name) {
     final parts = name.trim().split(' ');
     if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
@@ -389,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // ── BUILD ─────────────────────────────────────────────────────────────
+  // refactorizar para separar en widgets más pequeños y mejorar legibilidad
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -408,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── LOGIN ─────────────────────────────────────────────────────────────
+  // Widgets para construir la interfaz de login y chat, con campos de texto personalizados, botones estilizados y mensajes de sistema diferenciados visualmente
   Widget _buildLogin() => SafeArea(
     child: SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -658,11 +676,16 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+
+    // Para mensajes normales, determinar si el mensaje es del usuario actual (isMe), obtener el remitente, el texto y formatear la hora
     final isMe   = msg['isMe'] == true;
     final sender = msg['sender'] as String? ?? '';
     final text   = msg['text']  as String? ?? '';
     final time   = _formatTime(msg['ts'] as String? ?? '');
 
+
+    // Construir la burbuja del mensaje, alineada a la derecha si es del usuario actual y a la izquierda si es de otro, con estilos diferentes para cada caso y 
+    //mostrando el avatar e iniciales del remitente en mensajes de otros usuarios
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -681,6 +704,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 6),
           ],
+          // Construir la burbuja del mensaje
           Flexible(child: Container(
             constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.72),

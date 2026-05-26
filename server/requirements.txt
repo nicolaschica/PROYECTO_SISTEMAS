@@ -1,5 +1,3 @@
-
-# Requisitos para el servidor WebSocket usando FastAPI y Uvicorn 
 fastapi # Framework web moderno y rápido para construir APIs con Python 3.6+ basado en estándares como OpenAPI y JSON Schema
 uvicorn[standard] # Servidor ASGI rápido para Python, compatible con FastAPI
 websockets # Biblioteca para manejar conexiones WebSocket en Python, utilizada por FastAPI para soporte WebSocket
